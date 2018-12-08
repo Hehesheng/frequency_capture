@@ -1,6 +1,7 @@
 #ifndef __SYS_H
 #define __SYS_H
 #include <stdio.h>
+#include <stdlib.h>
 #include "stm32f4xx.h"
 
 //0,不支持os

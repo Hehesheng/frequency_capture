@@ -11,7 +11,7 @@
 
 /* HARDWARE */
 #include "pwm.h"
-
+#include "TIM.h"
 /* RTOS */
 
 /* Third Party */
