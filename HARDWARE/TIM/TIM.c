@@ -353,13 +353,53 @@ static void pwm_Tim_GPIO_Init(void) {
 
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
     GPIO_StructInit(&GPIO_InitStructure);
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1;
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
     GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
     GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_DOWN;
     GPIO_Init(GPIOA, &GPIO_InitStructure);
+    GPIO_PinAFConfig(GPIOA, GPIO_PinSource0, GPIO_AF_TIM2);
     GPIO_PinAFConfig(GPIOA, GPIO_PinSource1, GPIO_AF_TIM2);
+}
+
+/**
+ * @name   void Tim2_CCR1_DMA_Init(void)
+ * @info   Function Info
+ * @param  pData: 存入首地址 len:数据长度
+ * @retval None
+ */
+static void Tim2CCR1_DMA_Init(uint32_t *pData, uint32_t len) {
+    DMA_InitTypeDef DMA_InitStructure;
+
+    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA1, ENABLE);
+    DMA_DeInit(DMA1_Stream5);  //初始化
+
+    while (DMA_GetCmdStatus(DMA1_Stream5) != DISABLE)
+        ;  //等待 DMA 可配置
+
+    DMA_InitStructure.DMA_Channel = DMA_Channel_3;
+    DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)&TIM2->CCR1;
+    DMA_InitStructure.DMA_Memory0BaseAddr = (uint32_t)pData;
+    DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralToMemory;
+    DMA_InitStructure.DMA_BufferSize = len;
+    DMA_InitStructure.DMA_PeripheralInc =
+        DMA_PeripheralInc_Disable;  //外设非增量模式
+    DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;  //存储器增量模式
+    DMA_InitStructure.DMA_PeripheralDataSize =
+        DMA_PeripheralDataSize_Word;  //外设数据长度
+    DMA_InitStructure.DMA_MemoryDataSize =
+        DMA_MemoryDataSize_Word;                   //存储器数据长度
+    DMA_InitStructure.DMA_Mode = DMA_Mode_Normal;  // 使用普通模式
+    DMA_InitStructure.DMA_Priority = DMA_Priority_High;
+    DMA_InitStructure.DMA_FIFOMode = DMA_FIFOMode_Disable;  // FIFO 模式禁止
+    DMA_InitStructure.DMA_FIFOThreshold = DMA_FIFOThreshold_Full;  // FIFO 阈值
+    DMA_InitStructure.DMA_MemoryBurst =
+        DMA_MemoryBurst_Single;  //存储器突发单次传输
+    DMA_InitStructure.DMA_PeripheralBurst =
+        DMA_PeripheralBurst_Single;  //外设突发单次传输
+
+    DMA_Init(DMA1_Stream5, &DMA_InitStructure);
 }
 
 /**
@@ -401,12 +441,18 @@ static void Tim2CCR2_DMA_Init(uint32_t *pData, uint32_t len) {
     DMA_Init(DMA1_Stream6, &DMA_InitStructure);
 }
 
+/**
+ * @name   void Tim2_DMA_NVIC_Config(void)
+ * @info   Function Info
+ * @param  None
+ * @retval None
+ */
 static void Tim2_DMA_NVIC_Config(void) {
     NVIC_InitTypeDef NVIC_InitStructure;
 
     NVIC_InitStructure.NVIC_IRQChannel = DMA1_Stream6_IRQn;
     NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 10;  //抢占优先级
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;         //子优先级1
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;          //子优先级1
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;  // IRQ通道使能
     NVIC_Init(&NVIC_InitStructure);  //根据指定的参数初始化VIC寄存器
 
@@ -435,22 +481,33 @@ void pwm_Tim_Capture_Init(void) {
     TIM_TimeBaseInit(TIM2, &TIM_TimeBaseInitStructure);  //初始化TIM2
 
     //初始化TIM2输入捕获参数
-    TIM2_ICInitStructure.TIM_Channel =
-        TIM_Channel_2;  // CC1S=01         选择输入端 IC1映射到TI1上
-    TIM2_ICInitStructure.TIM_ICPolarity = TIM_ICPolarity_BothEdge;  //双边捕获
+    TIM2_ICInitStructure.TIM_Channel = TIM_Channel_2;
+    TIM2_ICInitStructure.TIM_ICPolarity = TIM_ICPolarity_Rising;  //上升捕获
     TIM2_ICInitStructure.TIM_ICSelection =
         TIM_ICSelection_DirectTI;  //映射到TI1上
     TIM2_ICInitStructure.TIM_ICPrescaler =
         TIM_ICPSC_DIV1;                        //配置输入分频,不分频
-    TIM2_ICInitStructure.TIM_ICFilter = 0x00;  // IC1F=0000 配置输入滤波器
+    TIM2_ICInitStructure.TIM_ICFilter = 0x03;  // IC1F=0000 配置输入滤波器
+                                               // 不滤波
+    TIM_ICInit(TIM2, &TIM2_ICInitStructure);
+
+    TIM2_ICInitStructure.TIM_Channel = TIM_Channel_1;
+    TIM2_ICInitStructure.TIM_ICPolarity = TIM_ICPolarity_Falling;  //下降捕获
+    TIM2_ICInitStructure.TIM_ICSelection =
+        TIM_ICSelection_DirectTI;  //映射到TI1上
+    TIM2_ICInitStructure.TIM_ICPrescaler =
+        TIM_ICPSC_DIV1;                        //配置输入分频,不分频
+    TIM2_ICInitStructure.TIM_ICFilter = 0x03;  // IC1F=0000 配置输入滤波器
                                                // 不滤波
     TIM_ICInit(TIM2, &TIM2_ICInitStructure);
     TIM_Cmd(TIM2, ENABLE);
 
-    //DMA配置
+    // DMA配置
+    Tim2CCR1_DMA_Init(ccr1_res, RES_SIZE);
     Tim2CCR2_DMA_Init(ccr2_res, RES_SIZE);
     // TIM_DMAConfig(TIM2, TIM_DMABase_CCR2, TIM_DMABurstLength_1Transfer);
-    TIM_DMACmd(TIM2, TIM_DMA_Update | TIM_DMA_CC2 | TIM_DMA_COM, ENABLE);
+    TIM_DMACmd(TIM2, TIM_DMA_Update | TIM_DMA_CC1 | TIM_DMA_CC2 | TIM_DMA_COM,
+               ENABLE);
     Tim2_DMA_NVIC_Config();
 }
 
@@ -463,7 +520,9 @@ void pwm_Tim_Capture_Init(void) {
 void TIM_DMA_Start(void) {
     TIM2->CNT = 0;
     delay_us(3);  //保证CNT成功置0
-    DMA_Cmd(DMA1_Stream6, ENABLE);
+    // DMA_Cmd(DMA1_Stream6, ENABLE);
+    DMA1_Stream5->CR |= DMA_SxCR_EN;
+    DMA1_Stream6->CR |= DMA_SxCR_EN;
 }
 
 /**
@@ -474,6 +533,7 @@ void TIM_DMA_Start(void) {
  */
 void DMA1_Stream6_IRQHandler(void) {
     if (DMA_GetFlagStatus(DMA1_Stream6, DMA_IT_TCIF6) != RESET) {
+        FINISH = 1;  //标志完成;
         DMA_ClearFlag(DMA1_Stream6, DMA_IT_TCIF6);
     }
 }

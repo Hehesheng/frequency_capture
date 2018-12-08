@@ -17,7 +17,8 @@
             "delay.h": "c",
             "main.h": "c",
             "memory": "c",
-            "stdio.h": "c"
+            "stdio.h": "c",
+            "queue.h": "c"
         }
     }
 }
