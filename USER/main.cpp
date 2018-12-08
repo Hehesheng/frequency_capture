@@ -13,7 +13,8 @@ int main() {
     TIM_DMA_Start();
 
     while (1) {
-        USART1printf("TIM->CCR2 = %6d\r\n", TIM2->CCR2);
+        // USART1printf("TIM->CCR2 = %6d\r\n", TIM2->CCR2);
         delay_ms(500);
+        TIM_DMA_Start();
     }
 }

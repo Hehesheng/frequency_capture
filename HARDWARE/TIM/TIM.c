@@ -11,7 +11,8 @@ u8 FINISH = 0;       //完成标志
 u8 selet_time = 1;   //标志模式是否切换
 u8 rising_flag = 0;  //判断第几次捕获中断
 u8 mode_flag = Cal_Low;  //模式选择（低频模式，高频模式，测量占空比模式）
-uint32_t ccr_res[RES_SIZE] = {0};
+uint32_t ccr1_res[RES_SIZE] = {0};
+uint32_t ccr2_res[RES_SIZE] = {0};
 
 //---------------------------以上变量分割线----------------------------------------------//
 
@@ -404,7 +405,7 @@ static void Tim2_DMA_NVIC_Config(void) {
     NVIC_InitTypeDef NVIC_InitStructure;
 
     NVIC_InitStructure.NVIC_IRQChannel = DMA1_Stream6_IRQn;
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 9;  //抢占优先级
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 10;  //抢占优先级
     NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;         //子优先级1
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;  // IRQ通道使能
     NVIC_Init(&NVIC_InitStructure);  //根据指定的参数初始化VIC寄存器
@@ -447,9 +448,9 @@ void pwm_Tim_Capture_Init(void) {
     TIM_Cmd(TIM2, ENABLE);
 
     //DMA配置
-    Tim2CCR2_DMA_Init(ccr_res, RES_SIZE);
+    Tim2CCR2_DMA_Init(ccr2_res, RES_SIZE);
+    // TIM_DMAConfig(TIM2, TIM_DMABase_CCR2, TIM_DMABurstLength_1Transfer);
     TIM_DMACmd(TIM2, TIM_DMA_Update | TIM_DMA_CC2 | TIM_DMA_COM, ENABLE);
-    TIM_DMAConfig(TIM2, TIM_DMABase_CCR2, TIM_DMABurstLength_1Transfer);
     Tim2_DMA_NVIC_Config();
 }
 
@@ -461,6 +462,7 @@ void pwm_Tim_Capture_Init(void) {
  */
 void TIM_DMA_Start(void) {
     TIM2->CNT = 0;
+    delay_us(3);  //保证CNT成功置0
     DMA_Cmd(DMA1_Stream6, ENABLE);
 }
 
