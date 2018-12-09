@@ -9,7 +9,7 @@
 #define Cal_Zkb 2  //占空比模式
 #define Cal_Cxw 3  //测量相位模式
 
-#define RES_SIZE 10
+#define RES_SIZE 3
 
 extern u32 CLK_NUM;  //计数
 extern u32 rising_first, rising_second, falling,

@@ -45,10 +45,10 @@ void TIM2_IRQHandler(void) {
 
 // TIM3中断服务函数
 void TIM3_IRQHandler(void) {
-    TIM_ClearITPendingBit(TIM3, TIM_IT_Update);  //清除中断标志位
-    CLK_NUM = TIM_GetCounter(TIM2);              //读取计数
-    TIM_SetCounter(TIM2, 0);                     //计数器清0
-    FINISH = 1;                                  //完成读取
+    TIM2->SR = ~TIM_IT_Update;  //清除中断标志位
+    CLK_NUM = TIM2->CNT;        //读取计数
+    TIM2->CNT = 0;
+    FINISH = 1;  //完成读取
 }
 
 // TIM5中断服务函数
@@ -343,12 +343,12 @@ void ALL_UsedTIM_DEInit() {
 }
 
 /**
- * @name   void pwm_Tim_GPIO_Init(void)
+ * @name   void Tim_Capture_GPIO_Init(void)
  * @info   Function Info
  * @param  None
  * @retval None
  */
-static void pwm_Tim_GPIO_Init(void) {
+static void Tim_Capture_GPIO_Init(void) {
     GPIO_InitTypeDef GPIO_InitStructure;
 
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
@@ -469,7 +469,7 @@ void pwm_Tim_Capture_Init(void) {
     TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStructure;
     TIM_ICInitTypeDef TIM2_ICInitStructure;
 
-    pwm_Tim_GPIO_Init();
+    Tim_Capture_GPIO_Init();
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);  ///使能TIM2时钟
 
     TIM_TimeBaseInitStructure.TIM_Period = 0xffffffff;  //自动重装载值
