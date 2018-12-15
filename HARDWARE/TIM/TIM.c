@@ -45,10 +45,10 @@ void TIM2_IRQHandler(void) {
 
 // TIM3中断服务函数
 void TIM3_IRQHandler(void) {
-    TIM2->SR = ~TIM_IT_Update;  //清除中断标志位
     CLK_NUM = TIM2->CNT;        //读取计数
-    TIM2->CNT = 0;
+    TIM3->SR = ~TIM_IT_Update;  //清除中断标志位
     FINISH = 1;  //完成读取
+    TIM2->CNT = 0;
 }
 
 // TIM5中断服务函数
@@ -160,7 +160,7 @@ void TIM2_Counter_Init(void) {
 
     // TIM_ITConfig(TIM1,TIM_IT_Update,ENABLE); //允许定时器1更新中断
 
-    TIM_ETRClockMode1Config(TIM2, TIM_ExtTRGPSC_OFF,
+    TIM_ETRClockMode1Config(TIM2, TIM_ExtTRGPSC_DIV4,
                             TIM_ExtTRGPolarity_NonInverted,
                             0x00);  //使用外部时钟计数
 
@@ -353,7 +353,7 @@ static void Tim_Capture_GPIO_Init(void) {
 
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
     GPIO_StructInit(&GPIO_InitStructure);
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1;
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1 | GPIO_Pin_15;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
     GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
@@ -361,6 +361,7 @@ static void Tim_Capture_GPIO_Init(void) {
     GPIO_Init(GPIOA, &GPIO_InitStructure);
     GPIO_PinAFConfig(GPIOA, GPIO_PinSource0, GPIO_AF_TIM2);
     GPIO_PinAFConfig(GPIOA, GPIO_PinSource1, GPIO_AF_TIM2);
+    GPIO_PinAFConfig(GPIOA, GPIO_PinSource15, GPIO_AF_TIM2);
 }
 
 /**
@@ -487,7 +488,7 @@ void pwm_Tim_Capture_Init(void) {
         TIM_ICSelection_DirectTI;  //映射到TI1上
     TIM2_ICInitStructure.TIM_ICPrescaler =
         TIM_ICPSC_DIV1;                        //配置输入分频,不分频
-    TIM2_ICInitStructure.TIM_ICFilter = 0x03;  // IC1F=0000 配置输入滤波器
+    TIM2_ICInitStructure.TIM_ICFilter = 0x00;  // IC1F=0000 配置输入滤波器
                                                // 不滤波
     TIM_ICInit(TIM2, &TIM2_ICInitStructure);
 
@@ -497,7 +498,7 @@ void pwm_Tim_Capture_Init(void) {
         TIM_ICSelection_DirectTI;  //映射到TI1上
     TIM2_ICInitStructure.TIM_ICPrescaler =
         TIM_ICPSC_DIV1;                        //配置输入分频,不分频
-    TIM2_ICInitStructure.TIM_ICFilter = 0x03;  // IC1F=0000 配置输入滤波器
+    TIM2_ICInitStructure.TIM_ICFilter = 0x00;  // IC1F=0000 配置输入滤波器
                                                // 不滤波
     TIM_ICInit(TIM2, &TIM2_ICInitStructure);
     TIM_Cmd(TIM2, ENABLE);

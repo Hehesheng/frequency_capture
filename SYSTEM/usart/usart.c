@@ -129,7 +129,7 @@ void USART1printf(const char* str, ...) {
 
 #if USART2_ENABLE
 //注意,读取USARTx->SR能避免莫名其妙的错误
-u8 USART2_RX_BUF[USART1_BUFF_LEN];  //接收缓冲,最大USART2_BUFF_LEN个字节.
+u8 USART2_RX_BUF[USART2_BUFF_LEN];  //接收缓冲,最大USART2_BUFF_LEN个字节.
 //接收状态
 // bit15,   接收完成标志
 // bit14~8, reserved

@@ -18,7 +18,8 @@
             "main.h": "c",
             "memory": "c",
             "stdio.h": "c",
-            "queue.h": "c"
+            "queue.h": "c",
+            "stdint.h": "c"
         }
     }
 }
