@@ -29,7 +29,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_it.h"
-
+#include "TIM.h"
 
 /** @addtogroup Template_Project
   * @{
@@ -163,5 +163,36 @@ void DebugMon_Handler(void)
   * @}
   */
 
+// TIM1中断服务函数
+void TIM1_UP_TIM10_IRQHandler(void) {
+    TIM1->SR = ~TIM_IT_Update;  //清除中断标志位
+}
+
+// TIM2中断服务函数
+void TIM2_IRQHandler(void) {
+    TIM_ClearITPendingBit(TIM2, TIM_IT_CC1 | TIM_IT_Update);  //清除中断标志位
+}
+
+// TIM3中断服务函数
+void TIM3_IRQHandler(void) {
+    TIM3->SR = ~TIM_IT_Update;  //清除中断标志位
+}
+
+// TIM5中断服务函数
+void TIM5_IRQHandler(void) {
+    TIM5->SR = ~TIM_IT_Update;  //清除中断标志位
+}
+
+/**
+ * @name   void DMA1_Stream6_IRQHandler(void)
+ * @brief  中断服务函数
+ * @param  None
+ * @retval None
+ */
+void DMA1_Stream6_IRQHandler(void) {
+    if (DMA_GetFlagStatus(DMA1_Stream6, DMA_IT_TCIF6) != RESET) {
+        DMA_ClearFlag(DMA1_Stream6, DMA_IT_TCIF6);
+    }
+}
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

@@ -1,33 +1,38 @@
 #ifndef __TIM_H
 #define __TIM_H
 
-#include "sys.h"
 #include "delay.h"
+#include "sys.h"
+#include "usart.h"
 
-#define Cal_Low 0  //低频模式
-#define Cal_Hig 1  //高频模式
-#define Cal_Zkb 2  //占空比模式
-#define Cal_Cxw 3  //测量相位模式
+#include "stm32f4xx_tim.h"
+#include "stm32f4xx_dma.h"
+
+/**
+ * @brief  TIM2作为外部时钟输入,PA12, TIM3配合定时读取
+ *         TIM5作为输入捕获,PA0,PA1,DMA配合
+ */
 
 #define RES_SIZE 3
 
-extern u32 CLK_NUM;  //计数
-extern u32 rising_first, rising_second, falling,
-    falling_second;  //两个上升沿 的计数器数据存储以及 下降沿 数据存储
-extern u8 FINISH;       //完成标志
-extern u8 selet_time;   //标志模式是否切换
-extern u8 rising_flag;  //判断是否第一次上升
-extern u8 mode_flag;  //模式选择（低频模式，高频模式，测量占空比模式）
+extern volatile uint32_t clk_num;    //计数
+extern volatile uint8_t tim_finish;  //完成标志
+extern Freq_Mode mode_flag;  //模式选择（低频模式，高频模式，测量占空比模式）
+extern volatile uint32_t tim1_update_num;
 extern uint32_t ccr1_res[RES_SIZE];
 extern uint32_t ccr2_res[RES_SIZE];
 
-void TIM3_Int_Init(u16 arr, u16 psc);      // TIM3中断控制
-void TIM2_Counter_Init(void);              //使用外部时钟计时
-void TIM2_CH1_Cap_Init(u32 arr, u16 psc);  // TIM2_CH1的输入捕获初始化
-void TIM5_CH1_CH2_Cap_Init(u32 arr, u16 psc);  // TIM5_CH1_CH2的测占空比初始化
-void TIM5_CH1_CH2_Cap_XWInit(u32 arr, u16 psc);  // TIM5_CH1_CH2的测相位初始化
-void ALL_UsedTIM_DEInit(void);  //初始化，切换模式使用
-void pwm_Tim_Capture_Init(void);
-void TIM_DMA_Start(void);
+extern double freq_res, duty_res;
+
+void TIM3_Int_Init(uint16_t arr, uint16_t psc);  // TIM3中断控制
+void TIM2_Counter_Init(void);                    //使用外部时钟计时
+void TIM2_CH1_Cap_Init(uint32_t arr, uint16_t psc);  // TIM2_CH1的输入捕获初始化
+void ALL_UsedTIM_Deinit(void);               //初始化，切换模式使用
+void pwm_Tim2_Capture_Init(void);
+void TIM2_DMA_Start(void);
+void TIM5_Int_Init(uint16_t seconds);
+void TIM1_Counter_Init(void);
+void pwm_Tim5_Capture_Init(void);
+void TIM5_DMA_Start(void);
 
 #endif
