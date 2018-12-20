@@ -4,8 +4,7 @@
 
 //---------------------------以下变量分割线----------------------------------------------//
 
-volatile uint32_t clk_num = 0;          //计数
-volatile uint32_t tim1_update_num = 0;  //记录进入TIM1中断次数
+volatile uint32_t clk_num = 0;  //计数
 uint32_t ccr1_res[RES_SIZE] = {0};
 uint32_t ccr2_res[RES_SIZE] = {0};
 
@@ -342,6 +341,36 @@ void TIM5_Int_Init(uint16_t seconds) {
 
     NVIC_InitStructure.NVIC_IRQChannel = TIM5_IRQn;  //定时器5中断
     NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x0A;  //抢占优先级1
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x01;  //子优先级1
+    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_Init(&NVIC_InitStructure);
+}
+
+/**
+ * @name   void TIM6_Int_Init(uint16_t seconds)
+ * @info   Function Info
+ * @param  seconds: 多少毫秒一次中断
+ * @retval None
+ */
+void TIM6_Int_Init(uint16_t seconds) {
+    TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStructure;
+    NVIC_InitTypeDef NVIC_InitStructure;
+
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM6, ENABLE);  ///使能TIM6时钟
+
+    TIM_TimeBaseInitStructure.TIM_Period = seconds * 10;  //自动重装载值
+    TIM_TimeBaseInitStructure.TIM_Prescaler = 8400;       //定时器分频
+    TIM_TimeBaseInitStructure.TIM_CounterMode =
+        TIM_CounterMode_Up;  //向上计数模式
+    TIM_TimeBaseInitStructure.TIM_ClockDivision = TIM_CKD_DIV1;
+
+    TIM_TimeBaseInit(TIM6, &TIM_TimeBaseInitStructure);  //初始化TIM6
+
+    TIM_ITConfig(TIM6, TIM_IT_Update, ENABLE);  //允许定时器6更新中断
+    TIM_Cmd(TIM6, ENABLE);                      //使能定时器6
+
+    NVIC_InitStructure.NVIC_IRQChannel = TIM6_DAC_IRQn;  //定时器6中断
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x0A;  //抢占优先级10
     NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x01;  //子优先级1
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
     NVIC_Init(&NVIC_InitStructure);

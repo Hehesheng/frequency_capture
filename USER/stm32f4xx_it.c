@@ -1,39 +1,39 @@
 /**
-  ******************************************************************************
-  * @file    Project/STM32F4xx_StdPeriph_Templates/stm32f4xx_it.c
-  * @author  MCD Application Team
-  * @version V1.4.0
-  * @date    04-August-2014
-  * @brief   Main Interrupt Service Routines.
-  *          This file provides template for all exceptions handler and
-  *          peripherals interrupt service routine.
-  ******************************************************************************
-  * @attention
-  *
-  * <h2><center>&copy; COPYRIGHT 2014 STMicroelectronics</center></h2>
-  *
-  * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
-  * You may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at:
-  *
-  *        http://www.st.com/software_license_agreement_liberty_v2
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file    Project/STM32F4xx_StdPeriph_Templates/stm32f4xx_it.c
+ * @author  MCD Application Team
+ * @version V1.4.0
+ * @date    04-August-2014
+ * @brief   Main Interrupt Service Routines.
+ *          This file provides template for all exceptions handler and
+ *          peripherals interrupt service routine.
+ ******************************************************************************
+ * @attention
+ *
+ * <h2><center>&copy; COPYRIGHT 2014 STMicroelectronics</center></h2>
+ *
+ * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
+ * You may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at:
+ *
+ *        http://www.st.com/software_license_agreement_liberty_v2
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ ******************************************************************************
+ */
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_it.h"
 #include "TIM.h"
 
 /** @addtogroup Template_Project
-  * @{
-  */
+ * @{
+ */
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -47,64 +47,54 @@
 /******************************************************************************/
 
 /**
-  * @brief  This function handles NMI exception.
-  * @param  None
-  * @retval None
-  */
-void NMI_Handler(void)
-{
+ * @brief  This function handles NMI exception.
+ * @param  None
+ * @retval None
+ */
+void NMI_Handler(void) {}
+
+/**
+ * @brief  This function handles Hard Fault exception.
+ * @param  None
+ * @retval None
+ */
+void HardFault_Handler(void) {
+    /* Go to infinite loop when Hard Fault exception occurs */
+    while (1) {
+    }
 }
 
 /**
-  * @brief  This function handles Hard Fault exception.
-  * @param  None
-  * @retval None
-  */
-void HardFault_Handler(void)
-{
-  /* Go to infinite loop when Hard Fault exception occurs */
-  while (1)
-  {
-  }
+ * @brief  This function handles Memory Manage exception.
+ * @param  None
+ * @retval None
+ */
+void MemManage_Handler(void) {
+    /* Go to infinite loop when Memory Manage exception occurs */
+    while (1) {
+    }
 }
 
 /**
-  * @brief  This function handles Memory Manage exception.
-  * @param  None
-  * @retval None
-  */
-void MemManage_Handler(void)
-{
-  /* Go to infinite loop when Memory Manage exception occurs */
-  while (1)
-  {
-  }
+ * @brief  This function handles Bus Fault exception.
+ * @param  None
+ * @retval None
+ */
+void BusFault_Handler(void) {
+    /* Go to infinite loop when Bus Fault exception occurs */
+    while (1) {
+    }
 }
 
 /**
-  * @brief  This function handles Bus Fault exception.
-  * @param  None
-  * @retval None
-  */
-void BusFault_Handler(void)
-{
-  /* Go to infinite loop when Bus Fault exception occurs */
-  while (1)
-  {
-  }
-}
-
-/**
-  * @brief  This function handles Usage Fault exception.
-  * @param  None
-  * @retval None
-  */
-void UsageFault_Handler(void)
-{
-  /* Go to infinite loop when Usage Fault exception occurs */
-  while (1)
-  {
-  }
+ * @brief  This function handles Usage Fault exception.
+ * @param  None
+ * @retval None
+ */
+void UsageFault_Handler(void) {
+    /* Go to infinite loop when Usage Fault exception occurs */
+    while (1) {
+    }
 }
 
 // /**
@@ -117,13 +107,11 @@ void UsageFault_Handler(void)
 // }
 
 /**
-  * @brief  This function handles Debug Monitor exception.
-  * @param  None
-  * @retval None
-  */
-void DebugMon_Handler(void)
-{
-}
+ * @brief  This function handles Debug Monitor exception.
+ * @param  None
+ * @retval None
+ */
+void DebugMon_Handler(void) {}
 
 // /**
 //   * @brief  This function handles PendSVC exception.
@@ -151,17 +139,17 @@ void DebugMon_Handler(void)
 /******************************************************************************/
 
 /**
-  * @brief  This function handles PPP interrupt request.
-  * @param  None
-  * @retval None
-  */
+ * @brief  This function handles PPP interrupt request.
+ * @param  None
+ * @retval None
+ */
 /*void PPP_IRQHandler(void)
 {
 }*/
 
 /**
-  * @}
-  */
+ * @}
+ */
 
 // TIM1中断服务函数
 void TIM1_UP_TIM10_IRQHandler(void) {
@@ -189,6 +177,21 @@ void TIM4_IRQHandler(void) {
 // TIM5中断服务函数
 void TIM5_IRQHandler(void) {
     TIM5->SR = ~TIM_IT_Update;  //清除中断标志位
+}
+
+// TIM6中断服务函数
+void TIM6_DAC_IRQHandler(void) {
+    TIM6->SR = ~TIM_IT_Update;  //清除中断标志位
+
+    if (freq_res > 1E4) {  //频率大于10k, 更换单位
+        USART1printf("freq: %.3lf khz", freq_res / 1000);
+    } else {
+        USART1printf("freq: %.3lf hz", freq_res);
+    }
+    if (freq_res < 2E6) {  //小于2M, 需要占空比
+        USART1printf("\tduty: %.2lf %%", duty_res * 100);
+    }
+    USART_SendData(USART1, '\n');
 }
 
 /**

@@ -24,9 +24,6 @@
 
 extern volatile uint32_t clk_num;     //计数
 extern volatile uint16_t finish_flag;  //完成标志
-extern volatile uint32_t tim1_update_num;
-extern uint32_t ccr1_res[RES_SIZE];
-extern uint32_t ccr2_res[RES_SIZE];
 
 extern double freq_res, duty_res;
 
@@ -38,6 +35,7 @@ void pwm_Tim2_Capture_Init(void);
 void TIM2_DMA_Start(void);
 void TIM4_Int_Init(uint16_t seconds);
 void TIM5_Int_Init(uint16_t seconds);
+void TIM6_Int_Init(uint16_t seconds);
 void TIM1_Counter_Init(void);
 void pwm_Tim5_Capture_Init(void);
 void TIM5_DMA_Start(void);
