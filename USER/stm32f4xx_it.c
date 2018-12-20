@@ -178,9 +178,30 @@ void TIM3_IRQHandler(void) {
     TIM3->SR = ~TIM_IT_Update;  //清除中断标志位
 }
 
+// TIM4中断服务函数
+void TIM4_IRQHandler(void) {
+    clk_num = TIM2->CNT;
+    setFlag(finish_flag, TIM4_TIME_OUT);
+    TIM2->CNT = 0;
+    TIM4->SR = ~TIM_IT_Update;  //清除中断标志位
+}
+
 // TIM5中断服务函数
 void TIM5_IRQHandler(void) {
     TIM5->SR = ~TIM_IT_Update;  //清除中断标志位
+}
+
+/**
+ * @name   void DMA1_Stream2_IRQHandler(void)
+ * @brief  中断服务函数
+ * @param  None
+ * @retval None
+ */
+void DMA1_Stream2_IRQHandler(void) {
+    if (DMA_GetFlagStatus(DMA1_Stream2, DMA_IT_TCIF2) != RESET) {
+        setFlag(finish_flag, DMA_CAPUTRE_FINISH);
+        DMA_ClearFlag(DMA1_Stream2, DMA_IT_TCIF2);
+    }
 }
 
 /**

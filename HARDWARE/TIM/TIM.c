@@ -5,13 +5,16 @@
 //---------------------------以下变量分割线----------------------------------------------//
 
 volatile uint32_t clk_num = 0;          //计数
-volatile uint8_t tim_finish = 0;        //完成标志
 volatile uint32_t tim1_update_num = 0;  //记录进入TIM1中断次数
 uint32_t ccr1_res[RES_SIZE] = {0};
 uint32_t ccr2_res[RES_SIZE] = {0};
 
+/**
+ * bit0: 定时器时间到的标志
+ * bit1: DMA捕获完成的标志
+ */
+volatile uint16_t finish_flag = 0;  //完成标志
 double freq_res = 0, duty_res = 0;
-
 //---------------------------以下为低频测频初始化------------------------------------//
 
 //通用定时器TIM2_CH1输入捕获初始化
@@ -315,7 +318,7 @@ void TIM2_DMA_Start(void) {
 }
 
 /**
- * @name   void TIM5_Int_Init(uint16_t arr, uint16_t psc)
+ * @name   void TIM5_Int_Init(uint16_t seconds)
  * @info   Function Info
  * @param  seconds: 多少毫秒一次中断
  * @retval None
@@ -381,6 +384,36 @@ void TIM1_Counter_Init(void) {
     NVIC_Init(&NVIC_InitStructure);
 
     TIM_Cmd(TIM1, ENABLE);  //使能定时器1
+}
+
+/**
+ * @name   void TIM4_Int_Init(uint16_t seconds)
+ * @info   Function Info
+ * @param  seconds: 多少毫秒一次中断
+ * @retval None
+ */
+void TIM4_Int_Init(uint16_t seconds) {
+    TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStructure;
+    NVIC_InitTypeDef NVIC_InitStructure;
+
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);  ///使能TIM4时钟
+
+    TIM_TimeBaseInitStructure.TIM_Period = seconds * 10;  //自动重装载值
+    TIM_TimeBaseInitStructure.TIM_Prescaler = 8400;       //定时器分频
+    TIM_TimeBaseInitStructure.TIM_CounterMode =
+        TIM_CounterMode_Up;  //向上计数模式
+    TIM_TimeBaseInitStructure.TIM_ClockDivision = TIM_CKD_DIV1;
+
+    TIM_TimeBaseInit(TIM4, &TIM_TimeBaseInitStructure);  //初始化TIM4
+
+    TIM_ITConfig(TIM4, TIM_IT_Update, ENABLE);  //允许定时器4更新中断
+    TIM_Cmd(TIM4, ENABLE);                      //使能定时器4
+
+    NVIC_InitStructure.NVIC_IRQChannel = TIM4_IRQn;  //定时器4中断
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x01;  //抢占优先级1
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x01;  //子优先级1
+    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_Init(&NVIC_InitStructure);
 }
 
 /**
@@ -545,3 +578,37 @@ void TIM5_DMA_Start(void) {
     DMA1_Stream4->CR |= DMA_SxCR_EN;
 }
 
+/**
+ * @name   uint16_t getFreqFromCapture(double *freq, double *duty)
+ * @brief  计算频率
+ * @param  [IO]freq: 频率
+ * @param  [IO]duty: 占空比
+ * @retval 频率获取是否成功, 成功为0, 失败为其他值
+ */
+uint16_t getFreqFromCapture(double *freq, double *duty) {
+    uint32_t freq_num = 0, duty_num = 0, i = 0;
+    uint32_t *falling_res, *rising_res;
+
+    rising_res = ccr1_res;
+    falling_res = ccr2_res;
+
+    while (getFlag(finish_flag, DMA_CAPUTRE_FINISH) == 0)
+        ;
+    clearFlag(finish_flag, DMA_CAPUTRE_FINISH);
+    while (DMA_GetFlagStatus(DMA1_Stream4, DMA_IT_TCIF4) == RESET)
+        ;
+    DMA_ClearFlag(DMA1_Stream4, DMA_IT_TCIF4);
+    for (i = 1; i < RES_SIZE; i++) {
+        if (falling_res[i] > rising_res[1]) break;
+    }
+    freq_num = rising_res[2] - rising_res[1];
+    duty_num = falling_res[i] - rising_res[1];
+    if (freq_num == 0) {
+        TIM5_DMA_Start();
+        return 1;
+    }
+    *duty = (double)duty_num / (double)freq_num;
+    *freq = 84000000.0 / (double)freq_num;
+    TIM5_DMA_Start();
+    return 0;
+}
