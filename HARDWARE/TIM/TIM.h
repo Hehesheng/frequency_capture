@@ -22,24 +22,25 @@
 #define setFlag(events, x) ((events) |= (x))
 #define clearFlag(events, x) ((events) &= ~(x))
 
-extern volatile uint32_t clk_num;     //计数
+extern uint32_t clk_num;     //计数
 extern volatile uint16_t finish_flag;  //完成标志
 
 extern double freq_res, duty_res;
 
-void TIM3_Int_Init(uint16_t arr, uint16_t psc);  // TIM3中断控制
-void TIM2_Counter_Init(void);                    //使用外部时钟计时
-void TIM2_CH1_Cap_Init(uint32_t arr, uint16_t psc);  // TIM2_CH1的输入捕获初始化
 void ALL_UsedTIM_Deinit(void);  //初始化，切换模式使用
+void TIM1_Counter_Init(void);
 void pwm_Tim2_Capture_Init(void);
+void TIM2_Counter_Init(void);                    //使用外部时钟计时
+void TIM2_CH1_Cap_Init(uint32_t reload, uint16_t psc);  // TIM2_CH1的输入捕获初始化
 void TIM2_DMA_Start(void);
+void TIM3_Int_Init(uint16_t seconds);
 void TIM4_Int_Init(uint16_t seconds);
 void TIM5_Int_Init(uint16_t seconds);
-void TIM6_Int_Init(uint16_t seconds);
-void TIM1_Counter_Init(void);
 void pwm_Tim5_Capture_Init(void);
 void TIM5_DMA_Start(void);
+void TIM6_Int_Init(uint16_t seconds);
 
 uint16_t getFreqFromCapture(double *freq, double *duty);
+void updateUIHandle(void);
 
 #endif

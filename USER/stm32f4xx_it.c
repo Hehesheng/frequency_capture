@@ -169,9 +169,9 @@ void TIM3_IRQHandler(void) {
 // TIM4中断服务函数
 void TIM4_IRQHandler(void) {
     clk_num = TIM2->CNT;
+    TIM4->SR = ~TIM_IT_Update;  //清除中断标志位
     setFlag(finish_flag, TIM4_TIME_OUT);
     TIM2->CNT = 0;
-    TIM4->SR = ~TIM_IT_Update;  //清除中断标志位
 }
 
 // TIM5中断服务函数
@@ -183,15 +183,7 @@ void TIM5_IRQHandler(void) {
 void TIM6_DAC_IRQHandler(void) {
     TIM6->SR = ~TIM_IT_Update;  //清除中断标志位
 
-    if (freq_res > 1E4) {  //频率大于10k, 更换单位
-        USART1printf("freq: %.3lf khz", freq_res / 1000);
-    } else {
-        USART1printf("freq: %.3lf hz", freq_res);
-    }
-    if (freq_res < 2E6) {  //小于2M, 需要占空比
-        USART1printf("\tduty: %.2lf %%", duty_res * 100);
-    }
-    USART_SendData(USART1, '\n');
+    updateUIHandle();
 }
 
 /**

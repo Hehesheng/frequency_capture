@@ -68,8 +68,8 @@ void uart1_init(u32 bound) {
 
     // Usart1 NVIC 配置
     NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;  //串口1中断通道
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 13;  //抢占优先级13
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;          //子优先级1
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x9;  //抢占优先级13
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;           //子优先级1
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;  // IRQ通道使能
     NVIC_Init(&NVIC_InitStructure);  //根据指定的参数初始化VIC寄存器
 }
@@ -82,6 +82,7 @@ static inline void back_up(void) {
     USART1_RX_BUF[(USART1_RX_STA & 0X7FFF) - 1] = 0;
     USART1_RX_STA--;
 }
+
 //串口1支持回显
 void USART1_IRQHandler(void) {  //串口1中断服务程序
     u8 Res;
@@ -247,11 +248,11 @@ void uart3_init(u32 bound) {
 
     // USART3端口配置
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10 | GPIO_Pin_11;  // GPIOA2与GPIOA3
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;            //复用功能
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;       //速度50MHz
-    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;          //推挽复用输出
-    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;            //上拉
-    GPIO_Init(GPIOB, &GPIO_InitStructure);                  //初始化PA2，PA3
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;              //复用功能
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;         //速度50MHz
+    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;  //推挽复用输出
+    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;    //上拉
+    GPIO_Init(GPIOB, &GPIO_InitStructure);          //初始化PA2，PA3
 
     // USART3 初始化设置
     USART_InitStructure.USART_BaudRate = bound;  //波特率设置

@@ -21,11 +21,11 @@ int main() {
         while (getFlag(finish_flag, TIM4_TIME_OUT) == 0)
             ;  //等待时间溢出
         clearFlag(finish_flag, TIM4_TIME_OUT);
-        temp_res = clk_num * 20;
+        temp_res = clk_num * 40;
         if (getFreqFromCapture(&freq_res, &duty_res) != 0)
-            continue;        //获取结果失败
-        if (temp_res > 1E5)  //如果频率大于于100khz, 用计数值当频率
-            freq_res = (double)temp_res;
+            continue;           //获取结果失败
+        if (temp_res > 100000)  //如果频率大于于100khz, 用计数值当频率
+            freq_res = (double)temp_res * 0.99892;  //校正系数
         temp_res = 0;
     }
 }

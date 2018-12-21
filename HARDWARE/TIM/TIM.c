@@ -1,27 +1,23 @@
 #include "TIM.h"
 
-#define EN_Calculator_XW 0
-
-//---------------------------以下变量分割线----------------------------------------------//
-
-volatile uint32_t clk_num = 0;  //计数
+uint32_t clk_num = 0;  //计数
 uint32_t ccr1_res[RES_SIZE] = {0};
 uint32_t ccr2_res[RES_SIZE] = {0};
+double freq_res = 0, duty_res = 0;
 
 /**
  * bit0: 定时器时间到的标志
  * bit1: DMA捕获完成的标志
  */
 volatile uint16_t finish_flag = 0;  //完成标志
-double freq_res = 0, duty_res = 0;
-//---------------------------以下为低频测频初始化------------------------------------//
 
-//通用定时器TIM2_CH1输入捕获初始化
-// arr：自动重装值。
-// psc：时钟预分频数
-//定时器溢出时间计算方法:Tout=((arr+1)*(psc+1))/Ft us.
-// Ft=定时器工作频率,单位:Mhz
-void TIM2_CH1_Cap_Init(uint32_t arr, uint16_t psc) {
+/**
+ * @name   void TIM2_CH1_Cap_Init(uint32_t reload, uint16_t psc)
+ * @brief  初始化通道1输入捕获
+ * @param  reload: 重载值 psc: 分频值
+ * @retval None
+ */
+void TIM2_CH1_Cap_Init(uint32_t reload, uint16_t psc) {
     TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
     NVIC_InitTypeDef NVIC_InitStructure;
     TIM_ICInitTypeDef TIM2_ICInitStructure;
@@ -33,7 +29,7 @@ void TIM2_CH1_Cap_Init(uint32_t arr, uint16_t psc) {
 
     TIM_TimeBaseStructure.TIM_Prescaler = psc;  //定时器分频
     TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;  //向上计数模式
-    TIM_TimeBaseStructure.TIM_Period = arr;  //自动重装载值
+    TIM_TimeBaseStructure.TIM_Period = reload;  //自动重装载值
     TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
 
     TIM_TimeBaseInit(TIM2, &TIM_TimeBaseStructure);
@@ -62,13 +58,12 @@ void TIM2_CH1_Cap_Init(uint32_t arr, uint16_t psc) {
     NVIC_Init(&NVIC_InitStructure);  //根据指定的参数初始化VIC寄存器
 }
 
-//----------------------------以上为低频测频初始化-----------------------------------//
-
-//---------------------------以下为高频测频初始化------------------------------------//
-
-//通用定时器TIM2中断初始化
-//使用TIM2_ETR的PA15进行外部时钟
-//方便计数
+/**
+ * @name   void TIM2_Counter_Init(void)
+ * @brief  使用TIM2_ETR的PA15进行外部时钟
+ * @param  None
+ * @retval None
+ */
 void TIM2_Counter_Init(void) {
     TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStructure;
 
@@ -87,27 +82,27 @@ void TIM2_Counter_Init(void) {
 
     // TIM_ITConfig(TIM1,TIM_IT_Update,ENABLE); //允许定时器1更新中断
 
-    TIM_ETRClockMode1Config(TIM2, TIM_ExtTRGPSC_DIV2,
+    TIM_ETRClockMode1Config(TIM2, TIM_ExtTRGPSC_DIV4,
                             TIM_ExtTRGPolarity_NonInverted,
-                            0x03);  //使用外部时钟计数
+                            0x00);  //使用外部时钟计数
 
     TIM_Cmd(TIM2, ENABLE);  //使能定时器1
 }
 
-//通用定时器3中断初始化
-// arr：自动重装值。
-// psc：时钟预分频数
-//定时器溢出时间计算方法:Tout=((arr+1)*(psc+1))/Ft us.
-// Ft=定时器工作频率,单位:Mhz
-//这里使用的是定时器3
-void TIM3_Int_Init(uint16_t arr, uint16_t psc) {
+/**
+ * @name   void TIM3_Int_Init(uint16_t seconds)
+ * @brief  多长时间重载, 单位ms, 选值0~6553
+ * @param  seconds: 毫秒数
+ * @retval None
+ */
+void TIM3_Int_Init(uint16_t seconds) {
     TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStructure;
     NVIC_InitTypeDef NVIC_InitStructure;
 
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);  ///使能TIM3时钟
 
-    TIM_TimeBaseInitStructure.TIM_Period = arr;     //自动重装载值
-    TIM_TimeBaseInitStructure.TIM_Prescaler = psc;  //定时器分频
+    TIM_TimeBaseInitStructure.TIM_Period = seconds * 10;  //自动重装载值
+    TIM_TimeBaseInitStructure.TIM_Prescaler = 8400;       //定时器分频
     TIM_TimeBaseInitStructure.TIM_CounterMode =
         TIM_CounterMode_Up;  //向上计数模式
     TIM_TimeBaseInitStructure.TIM_ClockDivision = TIM_CKD_DIV1;
@@ -124,17 +119,9 @@ void TIM3_Int_Init(uint16_t arr, uint16_t psc) {
     NVIC_Init(&NVIC_InitStructure);
 }
 
-//---------------------------以上为高频测频初始化-----------------------------------//
-
-//初始化，切换模式使用
-void ALL_UsedTIM_Deinit() {
-    RCC_APB1PeriphResetCmd(RCC_APB1Periph_TIM2, ENABLE);
-    RCC_APB1PeriphResetCmd(RCC_APB1Periph_TIM2, DISABLE);
-}
-
 /**
  * @name   void Tim_Capture_GPIO_Init(void)
- * @info   Function Info
+ * @info   初始化用到的io口
  * @param  None
  * @retval None
  */
@@ -156,7 +143,7 @@ static void Tim_Capture_GPIO_Init(void) {
 
 /**
  * @name   void Tim2_CCR1_DMA_Init(void)
- * @info   Function Info
+ * @info   从CCR1用DMA传输到指定地址
  * @param  pData: 存入首地址 len:数据长度
  * @retval None
  */
@@ -195,7 +182,7 @@ static void Tim2_CCR1_DMA_Init(uint32_t *pData, uint32_t len) {
 
 /**
  * @name   void Tim2_CCR2_DMA_Init(void)
- * @info   Function Info
+ * @info   从CCR2用DMA传输到指定地址
  * @param  pData: 存入首地址 len:数据长度
  * @retval None
  */
@@ -319,7 +306,7 @@ void TIM2_DMA_Start(void) {
 /**
  * @name   void TIM5_Int_Init(uint16_t seconds)
  * @info   Function Info
- * @param  seconds: 多少毫秒一次中断
+ * @param  seconds: 多少毫秒一次重载
  * @retval None
  */
 void TIM5_Int_Init(uint16_t seconds) {
@@ -417,8 +404,8 @@ void TIM1_Counter_Init(void) {
 
 /**
  * @name   void TIM4_Int_Init(uint16_t seconds)
- * @info   Function Info
- * @param  seconds: 多少毫秒一次中断
+ * @info   多长时间重载, 单位ms, 选值0~6553
+ * @param  seconds: 毫秒数
  * @retval None
  */
 void TIM4_Int_Init(uint16_t seconds) {
@@ -640,4 +627,23 @@ uint16_t getFreqFromCapture(double *freq, double *duty) {
     *freq = 84000000.0 / (double)freq_num;
     TIM5_DMA_Start();
     return 0;
+}
+
+/**
+ * @name   void updateUIHandle(void)
+ * @brief  向外输出方式编写的函数
+ * @param  None
+ * @retval None
+ */
+void updateUIHandle(void) {
+    if (freq_res > 1E4) {  //频率大于10k, 更换单位
+        USART1printf("freq: %.3lf khz", freq_res / 1000);
+    } else {
+        USART1printf("freq: %.3lf hz", freq_res);
+    }
+    if (freq_res < 3E6) {  //小于3M, 需要占空比
+        USART1printf("\tduty: %.2lf %%", duty_res * 100);
+    }
+    // USART1printf("\tCNT: %lf", (double)(clk_num * 40 * 0.99892));
+    USART_SendData(USART1, '\n');
 }
