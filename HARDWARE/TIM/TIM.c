@@ -84,7 +84,7 @@ void TIM2_Counter_Init(void) {
 
     TIM_ETRClockMode1Config(TIM2, TIM_ExtTRGPSC_DIV4,
                             TIM_ExtTRGPolarity_NonInverted,
-                            0x00);  //使用外部时钟计数
+                            0x01);  //使用外部时钟计数
 
     TIM_Cmd(TIM2, ENABLE);  //使能定时器1
 }
@@ -635,15 +635,15 @@ uint16_t getFreqFromCapture(double *freq, double *duty) {
  * @param  None
  * @retval None
  */
-void updateUIHandle(void) {
+__attribute__((weak)) void updateUIHandle(void) {
     if (freq_res > 1E4) {  //频率大于10k, 更换单位
         USART1printf("freq: %.3lf khz", freq_res / 1000);
     } else {
         USART1printf("freq: %.3lf hz", freq_res);
     }
     if (freq_res < 3E6) {  //小于3M, 需要占空比
-        USART1printf("\tduty: %.2lf %%", duty_res * 100);
+        USART1printf("\tduty: %.2lf %%", 100 - duty_res * 100);
     }
-    // USART1printf("\tCNT: %lf", (double)(clk_num * 40 * 0.99892));
-    USART_SendData(USART1, '\n');
+    USART1printf("\n");
 }
+

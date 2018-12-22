@@ -1,5 +1,28 @@
 #include "main.h"
 
+/**
+ * @name   void updateUIHandle(void)
+ * @brief  向外输出方式编写的函数
+ * @param  None
+ * @retval None
+ */
+void updateUIHandle(void) {
+    if (freq_res > 1E4) {  //频率大于10k, 更换单位
+        USART1printf("freq.txt=\"%.3lf khz\"", freq_res / 1000);
+        HMI_CommandEnd();
+    } else {
+        USART1printf("freq.txt=\"%.3lf hz\"", freq_res);
+        HMI_CommandEnd();
+    }
+    if (freq_res < 3E6) {  //小于3M, 需要占空比
+        USART1printf("duty.txt=\"%.2lf %%\"", 100 - duty_res * 100);
+        HMI_CommandEnd();
+    } else {
+        USART1printf("duty.txt=\"Error\"");
+        HMI_CommandEnd();
+    }
+}
+
 int main() {
     double pwm_duty = 50;
     uint32_t reload_num = 84, per_num = 1, temp_res = 0;
