@@ -18,12 +18,12 @@ static void USART_SendBuff(USART_TypeDef* USARTx, const char* buff) {
 
 #if USART1_ENABLE
 //注意,读取USARTx->SR能避免莫名其妙的错误
-u8 USART1_RX_BUF[USART1_BUFF_LEN];  //接收缓冲,最大USART1_BUFF_LEN个字节.
+uint8_t USART1_RX_BUF[USART1_BUFF_LEN];  //接收缓冲,最大USART1_BUFF_LEN个字节.
 //接收状态
 // bit15,   接收完成标志
 // bit14~8, reserved
 // bit7~0,  接收到的有效字节数目
-u16 USART1_RX_STA = 0;  //接收状态标记
+uint16_t USART1_RX_STA = 0;  //接收状态标记
 //初始化IO 串口1
 // bound:波特率
 void uart1_init(u32 bound) {
@@ -85,7 +85,7 @@ static inline void back_up(void) {
 
 //串口1支持回显
 void USART1_IRQHandler(void) {  //串口1中断服务程序
-    u8 Res;
+    uint8_t Res;
 
     if (USART_GetITStatus(USART1, USART_IT_RXNE) !=
         RESET) {  //接收中断(接收到的数据必须是0x0d 0x0a结尾)
@@ -130,12 +130,12 @@ void USART1printf(const char* str, ...) {
 
 #if USART2_ENABLE
 //注意,读取USARTx->SR能避免莫名其妙的错误
-u8 USART2_RX_BUF[USART2_BUFF_LEN];  //接收缓冲,最大USART2_BUFF_LEN个字节.
+uint8_t USART2_RX_BUF[USART2_BUFF_LEN];  //接收缓冲,最大USART2_BUFF_LEN个字节.
 //接收状态
 // bit15,   接收完成标志
 // bit14~8, reserved
 // bit7~0,  接收到的有效字节数目
-u16 USART2_RX_STA = 0;  //接收状态标记
+uint16_t USART2_RX_STA = 0;  //接收状态标记
 //初始化IO 串口1
 // bound:波特率
 void uart2_init(u32 bound) {
@@ -188,7 +188,7 @@ void uart2_init(u32 bound) {
 
 //串口2不支持回显
 void USART2_IRQHandler(void) {  //串口2中断服务程序
-    u8 Res;
+    uint8_t Res;
 
     if (USART_GetITStatus(USART2, USART_IT_RXNE) !=
         RESET) {  //接收中断(接收到的数据必须是0x0d 0x0a结尾)
@@ -223,12 +223,12 @@ void USART2printf(const char* str, ...) {
 
 #if USART3_ENABLE
 //注意,读取USARTx->SR能避免莫名其妙的错误
-u8 USART3_RX_BUF[USART1_BUFF_LEN];  //接收缓冲,最大USART3_BUFF_LEN个字节.
+uint8_tUSART3_RX_BUF[USART1_BUFF_LEN];  //接收缓冲,最大USART3_BUFF_LEN个字节.
 //接收状态
 // bit15,   接收完成标志
 // bit14~8, reserved
 // bit7~0,  接收到的有效字节数目
-u16 USART3_RX_STA = 0;  //接收状态标记
+uint16_t USART3_RX_STA = 0;  //接收状态标记
 //初始化IO 串口1
 // bound:波特率
 void uart3_init(u32 bound) {
@@ -281,7 +281,7 @@ void uart3_init(u32 bound) {
 
 //串口3不支持回显
 void USART3_IRQHandler(void) {  //串口3中断服务程序
-    u8 Res;
+    uint8_tRes;
 
     if (USART_GetITStatus(USART3, USART_IT_RXNE) !=
         RESET) {  //接收中断(接收到的数据必须是0x0d 0x0a结尾)

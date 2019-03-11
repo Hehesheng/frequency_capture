@@ -4,7 +4,7 @@
 // PWM输出初始化
 // arr：自动重装值
 // psc：时钟预分频数
-void TIM3_PWM_Init(u32 arr, u32 psc) {
+void TIM3_PWM_Init(uint32_t arr, uint32_t psc) {
     //此部分需手动修改IO口设置
 
     GPIO_InitTypeDef GPIO_InitStructure;

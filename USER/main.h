@@ -16,7 +16,7 @@
 
 /* Third Party */
 
-#define HMI_CommandEnd() USART1printf("\xFF\xFF\xFF");
+#define HMI_CommandEnd() USART2printf("\xFF\xFF\xFF");
 
 #ifdef __cplusplus
 }

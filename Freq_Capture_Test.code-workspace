@@ -19,7 +19,9 @@
             "memory": "c",
             "stdio.h": "c",
             "queue.h": "c",
-            "stdint.h": "c"
+            "stdint.h": "c",
+            "stdlib.h": "c",
+            "__config": "c"
         }
     }
 }

@@ -33,8 +33,8 @@
 //delay_intnesting改为：delay_osintnesting
 //////////////////////////////////////////////////////////////////////////////////
 
-static u8 fac_us = 0;  //us延时倍乘数
-static u16 fac_ms = 0; //ms延时倍乘数,在os下,代表每个节拍的ms数
+static uint8_t fac_us = 0;  //us延时倍乘数
+static uint16_t fac_ms = 0; //ms延时倍乘数,在os下,代表每个节拍的ms数
 
 #if SYSTEM_SUPPORT_OS //如果SYSTEM_SUPPORT_OS定义了,说明要支持OS了(不限于UCOS).
 //当delay_us/delay_ms需要支持OS的时候需要三个与OS相关的宏定义和函数来支持
@@ -86,7 +86,7 @@ void delay_osschedunlock(void)
 
 //调用OS自带的延时函数延时
 //ticks:延时的节拍数
-void delay_ostimedly(u32 ticks)
+void delay_ostimedly(uint32_t ticks)
 {
 #ifdef CPU_CFG_CRITICAL_METHOD
     OS_ERR err;
@@ -110,10 +110,10 @@ void SysTick_Handler(void)
 //当使用OS的时候,此函数会初始化OS的时钟节拍
 //SYSTICK的时钟固定为AHB时钟的1/8
 //SYSCLK:系统时钟频率
-void delay_init(u8 SYSCLK)
+void delay_init(uint8_t SYSCLK)
 {
 #if SYSTEM_SUPPORT_OS //如果需要支持OS.
-    u32 reload;
+    uint32_t reload;
 #endif
     SysTick_CLKSourceConfig(SysTick_CLKSource_HCLK_Div8);
     fac_us = SYSCLK / 8;                       //不论是否使用OS,fac_us都需要使用
@@ -135,11 +135,11 @@ void delay_init(u8 SYSCLK)
 //延时nus
 //nus:要延时的us数.
 //nus:0~204522252(最大值即2^32/fac_us@fac_us=21)
-void delay_us(u32 nus)
+void delay_us(uint32_t nus)
 {
-    u32 ticks;
-    u32 told, tnow, tcnt = 0;
-    u32 reload = SysTick->LOAD; //LOAD的值
+    uint32_t ticks;
+    uint32_t told, tnow, tcnt = 0;
+    uint32_t reload = SysTick->LOAD; //LOAD的值
     ticks = nus * fac_us;       //需要的节拍数
     told = SysTick->VAL;        //刚进入时的计数器值
     while (1)
@@ -160,7 +160,7 @@ void delay_us(u32 nus)
 //延时nms
 //nms:要延时的ms数
 //nms:0~65535
-void delay_ms(u16 nms)
+void delay_ms(uint16_t nms)
 {
     if (xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) //系统已经运行
     {
@@ -175,9 +175,9 @@ void delay_ms(u16 nms)
 
 //延时nms,不会引起任务调度
 //nms:要延时的ms数
-void delay_xms(u32 nms)
+void delay_xms(uint32_t nms)
 {
-    u32 i;
+    uint32_t i;
     for (i = 0; i < nms; i++)
         delay_us(1000);
 }
@@ -185,9 +185,9 @@ void delay_xms(u32 nms)
 //延时nus
 //nus为要延时的us数.
 //注意:nus的值,不要大于798915us(最大值即2^24/fac_us@fac_us=21)
-void delay_us(u32 nus)
+void delay_us(uint32_t nus)
 {
-    u32 temp;
+    uint32_t temp;
     SysTick->LOAD = nus * fac_us;             //时间加载
     SysTick->VAL = 0x00;                      //清空计数器
     SysTick->CTRL |= SysTick_CTRL_ENABLE_Msk; //开始倒数
@@ -204,9 +204,9 @@ void delay_us(u32 nus)
 //nms<=0xffffff*8*1000/SYSCLK
 //SYSCLK单位为Hz,nms单位为ms
 //对168M条件下,nms<=798ms tty.wchusbserial14220
-void delay_xms(u16 nms)
+void delay_xms(uint16_t nms)
 {
-    u32 temp;
+    uint32_t temp;
     SysTick->LOAD = (u32)nms * fac_ms;        //时间加载(SysTick->LOAD为24bit)
     SysTick->VAL = 0x00;                      //清空计数器
     SysTick->CTRL |= SysTick_CTRL_ENABLE_Msk; //开始倒数
@@ -219,11 +219,11 @@ void delay_xms(u16 nms)
 }
 //延时nms
 //nms:0~65535
-void delay_ms(u16 nms)
+void delay_ms(uint16_t nms)
 {
-    u8 repeat = nms / 540; //这里用540,是考虑到某些客户可能超频使用,
+    uint8_t repeat = nms / 540; //这里用540,是考虑到某些客户可能超频使用,
                            //比如超频到248M的时候,delay_xms最大只能延时541ms左右了
-    u16 remain = nms % 540;
+    uint16_t remain = nms % 540;
     while (repeat)
     {
         delay_xms(540);

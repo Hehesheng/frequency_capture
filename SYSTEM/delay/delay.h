@@ -1,6 +1,8 @@
 #ifndef __DELAY_H
 #define __DELAY_H
+
 #include <sys.h>
+#include <stdlib.h>
 //////////////////////////////////////////////////////////////////////////////////
 //本程序只供学习使用，未经作者许可，不得用于其它任何用途
 //ALIENTEK STM32F407开发板
@@ -17,8 +19,8 @@
 //修改说明
 //无
 //////////////////////////////////////////////////////////////////////////////////
-void delay_init(u8 SYSCLK);
-void delay_ms(u16 nms);
-void delay_us(u32 nus);
+void delay_init(uint8_t SYSCLK);
+void delay_ms(uint16_t nms);
+void delay_us(uint32_t nus);
 
 #endif
